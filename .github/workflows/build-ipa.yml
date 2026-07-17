@@ -44,7 +44,9 @@ jobs:
           APP_PATH="build/DerivedData/Build/Products/Release-iphoneos/FirefoxWASM.app"
           test -d "$APP_PATH"
           cp ios/FirefoxWASMiOS/FirefoxWASMiOS.entitlements build/requested-entitlements.plist
-          /usr/bin/plutil -extract get-task-allow raw -o - build/requested-entitlements.plist | grep -qx true
+          /usr/bin/plutil -lint build/requested-entitlements.plist
+          grep -q '<key>get-task-allow</key>' build/requested-entitlements.plist
+          grep -q '<true/>' build/requested-entitlements.plist
           mkdir -p build/ipa/Payload
           /usr/bin/ditto "$APP_PATH" build/ipa/Payload/FirefoxWASM.app
           (
