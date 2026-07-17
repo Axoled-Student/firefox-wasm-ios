@@ -42,18 +42,20 @@ jobs:
         run: |
           set -euo pipefail
           APP_PATH="build/DerivedData/Build/Products/Release-iphoneos/FirefoxWASM.app"
+          EXECUTABLE="$APP_PATH/FirefoxWASM"
           test -d "$APP_PATH"
+          test -f "$EXECUTABLE"
           /usr/bin/codesign --force --sign - \
             --entitlements ios/FirefoxWASMiOS/FirefoxWASMiOS.entitlements \
-            --generate-entitlement-der "$APP_PATH"
+            --generate-entitlement-der "$EXECUTABLE"
+          /usr/bin/codesign -d --entitlements :- "$EXECUTABLE" > build/entitlements.plist
+          /usr/bin/plutil -extract get-task-allow raw -o - build/entitlements.plist | grep -qx true
           mkdir -p build/ipa/Payload
           /usr/bin/ditto "$APP_PATH" build/ipa/Payload/FirefoxWASM.app
           (
             cd build/ipa
             /usr/bin/zip -qry ../FirefoxWASM-iPadOS27-unsigned.ipa Payload
           )
-          /usr/bin/codesign -d --entitlements - "$APP_PATH" > build/entitlements.plist
-          /usr/bin/plutil -extract get-task-allow raw -o - build/entitlements.plist | grep -qx true
           shasum -a 256 build/FirefoxWASM-iPadOS27-unsigned.ipa > build/FirefoxWASM-iPadOS27-unsigned.ipa.sha256
 
       - name: Upload IPA
