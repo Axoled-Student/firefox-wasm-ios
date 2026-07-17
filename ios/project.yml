@@ -16,8 +16,37 @@ targets:
       - path: FirefoxWASMiOS
     info:
       path: FirefoxWASMiOS/Info.plist
+      properties:
+        CFBundleDevelopmentRegion: zh_TW
+        CFBundleDisplayName: Firefox WASM
+        CFBundleExecutable: $(EXECUTABLE_NAME)
+        CFBundleIdentifier: $(PRODUCT_BUNDLE_IDENTIFIER)
+        CFBundleInfoDictionaryVersion: "6.0"
+        CFBundleLocalizations:
+          - zh-Hant
+          - en
+        CFBundleName: $(PRODUCT_NAME)
+        CFBundlePackageType: APPL
+        CFBundleShortVersionString: "1.0.0"
+        CFBundleVersion: "1"
+        LSRequiresIPhoneOS: true
+        UIApplicationSupportsIndirectInputEvents: true
+        UILaunchStoryboardName: LaunchScreen
+        UIRequiresFullScreen: false
+        UISupportedInterfaceOrientations:
+          - UIInterfaceOrientationPortrait
+          - UIInterfaceOrientationPortraitUpsideDown
+          - UIInterfaceOrientationLandscapeLeft
+          - UIInterfaceOrientationLandscapeRight
+        UISupportedInterfaceOrientations~ipad:
+          - UIInterfaceOrientationPortrait
+          - UIInterfaceOrientationPortraitUpsideDown
+          - UIInterfaceOrientationLandscapeLeft
+          - UIInterfaceOrientationLandscapeRight
     entitlements:
       path: FirefoxWASMiOS/FirefoxWASMiOS.entitlements
+      properties:
+        get-task-allow: true
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.axoledstudent.firefoxwasm

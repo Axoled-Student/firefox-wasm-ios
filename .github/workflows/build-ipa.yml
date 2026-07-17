@@ -45,6 +45,21 @@ jobs:
           test -d "$APP_PATH"
           cp ios/FirefoxWASMiOS/FirefoxWASMiOS.entitlements build/requested-entitlements.plist
           /usr/bin/plutil -lint build/requested-entitlements.plist
+          python3 - <<'PY'
+          import plistlib
+          from pathlib import Path
+
+          with Path("build/requested-entitlements.plist").open("rb") as stream:
+              entitlements = plistlib.load(stream)
+          with Path("build/DerivedData/Build/Products/Release-iphoneos/FirefoxWASM.app/Info.plist").open("rb") as stream:
+              info = plistlib.load(stream)
+
+          assert entitlements.get("get-task-allow") is True
+          assert info.get("UIDeviceFamily") == [1, 2]
+          assert info.get("UIApplicationSupportsIndirectInputEvents") is True
+          assert "zh-Hant" in info.get("CFBundleLocalizations", [])
+          assert info.get("UILaunchStoryboardName") == "LaunchScreen"
+          PY
           mkdir -p build/ipa/Payload
           /usr/bin/ditto "$APP_PATH" build/ipa/Payload/FirefoxWASM.app
           (
