@@ -13,7 +13,7 @@ Firefox's Gecko engine running inside a `WKWebView`, packaged as an unsigned iPa
 1. Open the repository's **Actions** tab and choose **Build unsigned iPadOS IPA**.
 2. Download the `FirefoxWASM-iPadOS27-unsigned` artifact.
 3. Sideload the included `.ipa` with SideStore, AltStore, Sideloadly, or an equivalent signer.
-4. Confirm the signer retained the `get-task-allow` entitlement.
+4. Confirm the development signer applied `get-task-allow` (the artifact includes `requested-entitlements.plist` as a reference).
 5. In StikDebug, select **Firefox WASM** and enable JIT, then return to Firefox WASM.
 
 The JIT checkbox in the web launch screen is enabled by default. StikDebug controls iPadOS process JIT permission; the checkbox controls Gecko's experimental internal JS → WASM JIT.
