@@ -4,6 +4,7 @@ import WebKit
 
 final class FirefoxViewController: UIViewController {
     private static let webAppURL = URL(string: "https://axoled-student.github.io/firefox-wasm-ios/")!
+    private var localServer: LoopbackHTTPServer?
 
     private lazy var webView: WKWebView = {
         let contentController = WKUserContentController()
@@ -66,7 +67,7 @@ final class FirefoxViewController: UIViewController {
             toolbar.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor)
         ])
 
-        webView.load(URLRequest(url: Self.webAppURL, cachePolicy: .reloadRevalidatingCacheData))
+        loadBundledFirefox()
     }
 
     override var prefersHomeIndicatorAutoHidden: Bool { true }
@@ -82,6 +83,29 @@ final class FirefoxViewController: UIViewController {
             command(UIKeyCommand.inputRightArrow, .alternate, "下一頁", #selector(goForward)),
             command(UIKeyCommand.inputEscape, [], "關閉", #selector(escape))
         ]
+    }
+
+    private func loadBundledFirefox() {
+        guard let server = LoopbackHTTPServer() else {
+            loadRemoteFallback(reason: "bundled runtime is missing")
+            return
+        }
+        localServer = server
+        server.start { [weak self] result in
+            guard let self else { return }
+            switch result {
+            case .success(let url):
+                NSLog("[runtime] Loading bundled Firefox from %@", url.absoluteString)
+                self.webView.load(URLRequest(url: url, cachePolicy: .returnCacheDataElseLoad))
+            case .failure(let error):
+                self.loadRemoteFallback(reason: String(describing: error))
+            }
+        }
+    }
+
+    private func loadRemoteFallback(reason: String) {
+        NSLog("[runtime] Local server unavailable (%@); using hosted fallback", reason)
+        webView.load(URLRequest(url: Self.webAppURL, cachePolicy: .returnCacheDataElseLoad))
     }
 
     private func item(_ symbol: String, _ label: String, _ action: Selector) -> UIBarButtonItem {
@@ -136,6 +160,7 @@ final class FirefoxViewController: UIViewController {
     }
 
     deinit {
+        localServer?.stop()
         webView.configuration.userContentController.removeScriptMessageHandler(forName: "firefoxStatus")
     }
 }

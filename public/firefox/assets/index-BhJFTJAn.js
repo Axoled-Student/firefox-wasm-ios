@@ -6613,7 +6613,11 @@ var PThread = {
     }
   },
   initMainThread() {
-    var pthreadPoolSize = 20;
+    // iPadOS WebKit can stall while eagerly starting the desktop-sized pool.
+    // Four warm workers are enough to boot Gecko; additional pthreads are
+    // still created on demand by getNewWorker().
+    var isIPadOS = /iPad|iPhone|iPod/.test(globalThis.navigator?.userAgent || "") || globalThis.navigator?.platform === "MacIntel" && globalThis.navigator?.maxTouchPoints > 1;
+    var pthreadPoolSize = isIPadOS ? 4 : 20;
     // Start loading up the Worker pool, if requested.
     while (pthreadPoolSize--) {
       PThread.allocateUnusedWorker();

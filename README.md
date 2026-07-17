@@ -5,7 +5,7 @@ Firefox's Gecko engine running inside a `WKWebView`, packaged as an unsigned iPa
 ## Requirements
 
 - iPadOS 27 or newer. This Gecko build requires WebAssembly JavaScript Promise Integration (JSPI), first provided by WebKit in Safari 27.
-- Network access. The IPA opens the GitHub Pages deployment and Firefox tabs use Puter's hosted Wisp proxy.
+- Network access is only required for websites opened inside Firefox. Version 1.0.1 bundles the full Gecko runtime and browser assets inside the IPA, so launching Firefox never downloads them again.
 - For the experimental Gecko JS → WASM JIT: a sideloaded build that retains `get-task-allow`, plus StikDebug or another compatible JIT enabler.
 
 ## Install the IPA
@@ -17,6 +17,8 @@ Firefox's Gecko engine running inside a `WKWebView`, packaged as an unsigned iPa
 5. In StikDebug, select **Firefox WASM** and enable JIT, then return to Firefox WASM.
 
 The JIT checkbox in the web launch screen is enabled by default. StikDebug controls iPadOS process JIT permission; the checkbox controls Gecko's experimental internal JS → WASM JIT.
+
+The replacement IPA is roughly 80 MB because it now includes Gecko, the Firefox chrome archive, and the Traditional Chinese font. The native wrapper serves those files from a private loopback address with the COOP/COEP headers required by WebAssembly threads. The hosted web version additionally stores the large archives in persistent Cache Storage after the first download.
 
 ## Keyboard and zh-TW
 

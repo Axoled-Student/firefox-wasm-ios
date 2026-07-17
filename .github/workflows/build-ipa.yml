@@ -5,6 +5,7 @@ on:
     branches: [main]
     paths:
       - "ios/**"
+      - "public/firefox/**"
       - ".github/workflows/build-ipa.yml"
   workflow_dispatch:
 
@@ -56,9 +57,17 @@ jobs:
 
           assert entitlements.get("get-task-allow") is True
           assert info.get("UIDeviceFamily") == [1, 2]
+          assert info.get("CFBundleShortVersionString") == "1.0.1"
+          assert info.get("CFBundleVersion") == "2"
           assert info.get("UIApplicationSupportsIndirectInputEvents") is True
           assert "zh-Hant" in info.get("CFBundleLocalizations", [])
           assert info.get("UILaunchStoryboardName") == "LaunchScreen"
+
+          app = Path("build/DerivedData/Build/Products/Release-iphoneos/FirefoxWASM.app")
+          bundled = app / "firefox"
+          assert (bundled / "index.html").is_file()
+          assert (bundled / "gecko.wasm.zst").stat().st_size == 37_892_603
+          assert (bundled / "chrome-assets.tar.zst").stat().st_size > 40_000_000
           PY
           mkdir -p build/ipa/Payload
           /usr/bin/ditto "$APP_PATH" build/ipa/Payload/FirefoxWASM.app
@@ -66,6 +75,7 @@ jobs:
             cd build/ipa
             /usr/bin/zip -qry ../FirefoxWASM-iPadOS27-unsigned.ipa Payload
           )
+          test "$(stat -f%z build/FirefoxWASM-iPadOS27-unsigned.ipa)" -gt 75000000
           shasum -a 256 build/FirefoxWASM-iPadOS27-unsigned.ipa > build/FirefoxWASM-iPadOS27-unsigned.ipa.sha256
 
       - name: Upload IPA

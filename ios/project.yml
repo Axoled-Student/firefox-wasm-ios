@@ -14,6 +14,10 @@ targets:
     platform: iOS
     sources:
       - path: FirefoxWASMiOS
+      - path: ../public/firefox
+        name: firefox
+        type: folder
+        buildPhase: resources
     info:
       path: FirefoxWASMiOS/Info.plist
       properties:
@@ -27,9 +31,11 @@ targets:
           - en
         CFBundleName: $(PRODUCT_NAME)
         CFBundlePackageType: APPL
-        CFBundleShortVersionString: "1.0.0"
-        CFBundleVersion: "1"
+        CFBundleShortVersionString: "1.0.1"
+        CFBundleVersion: "2"
         LSRequiresIPhoneOS: true
+        NSAppTransportSecurity:
+          NSAllowsLocalNetworking: true
         UIApplicationSupportsIndirectInputEvents: true
         UILaunchStoryboardName: LaunchScreen
         UIRequiresFullScreen: false
