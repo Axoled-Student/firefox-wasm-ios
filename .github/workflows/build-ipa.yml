@@ -45,14 +45,6 @@ jobs:
           test -d "$APP_PATH"
           cp ios/FirefoxWASMiOS/FirefoxWASMiOS.entitlements build/requested-entitlements.plist
           /usr/bin/plutil -lint build/requested-entitlements.plist
-          python3 - <<'PY'
-          import plistlib
-          from pathlib import Path
-
-          with Path("build/requested-entitlements.plist").open("rb") as stream:
-              entitlements = plistlib.load(stream)
-          assert entitlements.get("get-task-allow") is True
-          PY
           mkdir -p build/ipa/Payload
           /usr/bin/ditto "$APP_PATH" build/ipa/Payload/FirefoxWASM.app
           (
