@@ -1,0 +1,55 @@
+:root {
+  color-scheme: dark;
+  font-family: -apple-system, BlinkMacSystemFont, "PingFang TC", "Noto Sans TC", sans-serif;
+}
+
+body {
+  overscroll-behavior: none;
+  -webkit-touch-callout: none;
+}
+
+#ios-keyboard-input {
+  position: fixed;
+  left: 50%;
+  bottom: max(10px, env(safe-area-inset-bottom));
+  z-index: 10002;
+  width: min(72vw, 520px);
+  min-height: 42px;
+  transform: translateX(-50%);
+  padding: 9px 14px;
+  border: 1px solid rgba(255, 255, 255, .25);
+  border-radius: 14px;
+  background: rgba(28, 21, 51, .94);
+  color: white;
+  font: 17px/1.35 -apple-system, BlinkMacSystemFont, "PingFang TC", sans-serif;
+  box-shadow: 0 10px 32px rgba(0, 0, 0, .38);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+}
+
+#ios-keyboard-input[hidden] { display: none; }
+
+#ios-keyboard-hint {
+  position: fixed;
+  right: max(12px, env(safe-area-inset-right));
+  bottom: max(12px, env(safe-area-inset-bottom));
+  z-index: 10001;
+  border: 1px solid rgba(255, 255, 255, .28);
+  border-radius: 12px;
+  padding: 9px 12px;
+  background: rgba(28, 21, 51, .9);
+  color: white;
+  font: 600 14px/1 -apple-system, BlinkMacSystemFont, "PingFang TC", sans-serif;
+}
+
+#ios-compatibility {
+  margin-top: 10px;
+  color: #574d6b;
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+@media (display-mode: standalone), (max-width: 900px) {
+  .top-nav { padding-top: env(safe-area-inset-top); }
+  .stage { padding-bottom: env(safe-area-inset-bottom); }
+}

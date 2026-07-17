@@ -1,0 +1,8 @@
+* text=auto
+*.yml text eol=lf
+*.yaml text eol=lf
+*.swift text eol=lf
+*.plist text eol=lf
+*.entitlements text eol=lf
+*.zst binary
+*.webp binary

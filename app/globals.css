@@ -1,0 +1,14 @@
+@import "tailwindcss";
+
+:root {
+  color-scheme: dark;
+}
+
+html,
+body {
+  min-height: 100%;
+  margin: 0;
+  background: #17112b;
+  color: #fff;
+  font-family: -apple-system, BlinkMacSystemFont, "PingFang TC", sans-serif;
+}
