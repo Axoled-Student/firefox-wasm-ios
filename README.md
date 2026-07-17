@@ -5,7 +5,8 @@ Firefox's Gecko engine running inside a `WKWebView`, packaged as an unsigned iPa
 ## Requirements
 
 - iPadOS 27 or newer. This Gecko build requires WebAssembly JavaScript Promise Integration (JSPI), first provided by WebKit in Safari 27.
-- Network access is only required for websites opened inside Firefox. Version 1.0.1 bundles the full Gecko runtime and browser assets inside the IPA, so launching Firefox never downloads them again.
+- Network access is only required for websites opened inside Firefox. Version 1.0.2 bundles the full Gecko runtime and browser assets inside the IPA, so launching Firefox never downloads them again.
+- Browser traffic uses the Wisp transport at `wss://wisp.mercurywork.shop/`; the expired Puter Labs endpoint is replaced before Gecko starts.
 - For the experimental Gecko JS → WASM JIT: a sideloaded build that retains `get-task-allow`, plus StikDebug or another compatible JIT enabler.
 
 ## Install the IPA

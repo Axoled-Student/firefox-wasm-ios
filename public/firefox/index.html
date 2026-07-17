@@ -22,6 +22,21 @@
         if (typeof options.jit !== "boolean") options.jit = true;
         localStorage.setItem(key, JSON.stringify(options));
       } catch (_) {}
+
+      // Puter Labs' temporary configuration endpoint now returns an
+      // authorization error. Keep the upstream launcher intact, but provide a
+      // valid Wisp transport response without making that broken request.
+      const firefoxFetch = window.fetch.bind(window);
+      window.fetch = function (input, init) {
+        const url = typeof input === "string" ? input : input && input.url;
+        if (url === "https://sensible-ship-8305.puter.work/") {
+          return Promise.resolve(new Response("wss://wisp.mercurywork.shop/", {
+            status: 200,
+            headers: { "Content-Type": "text/plain; charset=utf-8" }
+          }));
+        }
+        return firefoxFetch(input, init);
+      };
     </script>
     <script src="./coi-loader.js"></script>
     <script src="./ios-bridge.js" defer></script>

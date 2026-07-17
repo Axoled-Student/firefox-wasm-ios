@@ -1,4 +1,4 @@
-var RUNTIME_CACHE = 'firefox-wasm-runtime-v1';
+var RUNTIME_CACHE = 'firefox-wasm-runtime-v2';
 var RUNTIME_ASSETS = [
   '/gecko.wasm.zst',
   '/chrome-assets.tar.zst',
@@ -15,7 +15,16 @@ self.addEventListener('install', function () {
 });
 
 self.addEventListener('activate', function (event) {
-  event.waitUntil(self.clients.claim());
+  event.waitUntil(Promise.all([
+    self.clients.claim(),
+    caches.keys().then(function (keys) {
+      return Promise.all(keys
+        .filter(function (key) {
+          return key.indexOf('firefox-wasm-runtime-') === 0 && key !== RUNTIME_CACHE;
+        })
+        .map(function (key) { return caches.delete(key); }));
+    })
+  ]));
 });
 
 self.addEventListener('fetch', function (event) {

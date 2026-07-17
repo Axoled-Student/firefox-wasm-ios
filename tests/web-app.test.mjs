@@ -15,6 +15,8 @@ test("ships the zh-TW iPad browser shell", async () => {
   assert.match(html, /支援繁體中文/);
   assert.match(html, /coi-loader\.js/);
   assert.match(html, /ios-bridge\.js/);
+  assert.match(html, /wss:\/\/wisp\.mercurywork\.shop\//);
+  assert.match(html, /sensible-ship-8305\.puter\.work/);
   assert.match(bridge, /compositionend/);
   assert.match(bridge, /Noto Sans CJK TC/);
   assert.match(bridge, /WebAssembly\.Suspending/);
@@ -46,7 +48,8 @@ test("cross-origin isolation and persistent runtime caching are included", async
   assert.match(worker, /Cross-Origin-Embedder-Policy/);
   assert.match(worker, /Cross-Origin-Opener-Policy/);
   assert.match(worker, /clients\.claim/);
-  assert.match(worker, /firefox-wasm-runtime-v1/);
+  assert.match(worker, /firefox-wasm-runtime-v2/);
+  assert.match(worker, /caches\.delete/);
   assert.match(worker, /gecko\.wasm\.zst/);
   assert.match(worker, /chrome-assets\.tar\.zst/);
   assert.match(worker, /cache\.match/);
