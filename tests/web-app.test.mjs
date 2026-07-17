@@ -21,8 +21,14 @@ test("ships the zh-TW iPad browser shell", async () => {
   assert.match(html, /ipadosStableRevision/);
   assert.match(bridge, /compositionend/);
   assert.match(bridge, /insertLineBreak/);
+  assert.match(bridge, /ignoreNextDeleteBeforeInput/);
+  assert.match(bridge, /event\.key === 'Backspace'/);
   assert.match(bridge, /touchmove/);
   assert.match(bridge, /new WheelEvent\('wheel'/);
+  assert.match(bridge, /startMomentum/);
+  assert.match(bridge, /webextension-browser-action/);
+  assert.match(bridge, /__firefoxIOSPopupWorkaroundV2/);
+  assert.match(bridge, /openTrustedLinkIn\(popup, 'tab'/);
   assert.match(bridge, /passive: false/);
   const dispatchKey = bridge.slice(
     bridge.indexOf('function dispatchKey'),
@@ -60,13 +66,15 @@ test("cross-origin isolation and persistent runtime caching are included", async
   assert.match(worker, /Cross-Origin-Embedder-Policy/);
   assert.match(worker, /Cross-Origin-Opener-Policy/);
   assert.match(worker, /clients\.claim/);
-  assert.match(worker, /firefox-wasm-runtime-v3/);
+  assert.match(worker, /firefox-wasm-runtime-v4/);
   assert.match(worker, /caches\.delete/);
   assert.match(worker, /gecko\.wasm\.zst/);
   assert.match(worker, /chrome-assets\.tar\.zst/);
   assert.match(worker, /cache\.match/);
   assert.match(worker, /cache\.put/);
   assert.match(loader, /loadFirefoxRuntime/);
+  assert.match(loader, /getRegistration\('\.\/'\)/);
+  assert.match(loader, /registration\.update\(\)/);
   assert.doesNotMatch(html, /<script type="module"[^>]+index-BhJFTJAn\.js/);
 });
 
@@ -83,6 +91,9 @@ test("the IPA bundles and loopback-serves Firefox without redownloading", async 
   assert.match(project, /NSAllowsLocalNetworking: true/);
   assert.match(controller, /loadBundledFirefox/);
   assert.match(controller, /returnCacheDataElseLoad/);
+  assert.match(controller, /UIAlertController\(title: "搜尋或輸入網址"/);
+  assert.match(controller, /destinationURL\(for:/);
+  assert.match(controller, /window\.FirefoxIOS\?\.openURL/);
   assert.match(server, /127\.0\.0\.1/);
   assert.match(server, /Cross-Origin-Embedder-Policy: require-corp/);
   assert.match(server, /Cross-Origin-Opener-Policy: same-origin/);

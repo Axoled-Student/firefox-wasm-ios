@@ -13,6 +13,17 @@
   // The packaged iPad app serves the bundle from its loopback server with real
   // COOP/COEP headers, so it can start immediately without a service worker.
   if (window.crossOriginIsolated) {
+    // A hosted page may already be isolated by an older controlling worker.
+    // Ask that registration to update so cache-version fixes are not delayed
+    // until the browser's periodic service-worker check. The local IPA has no
+    // controller, so it still avoids installing a redundant cache.
+    if (navigator.serviceWorker && navigator.serviceWorker.controller) {
+      navigator.serviceWorker.getRegistration('./').then(function (registration) {
+        if (registration) return registration.update();
+      }).catch(function (error) {
+        console.warn('[coi] Service Worker update failed:', error);
+      });
+    }
     loadFirefoxRuntime();
     return;
   }

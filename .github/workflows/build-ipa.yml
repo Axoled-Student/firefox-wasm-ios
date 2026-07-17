@@ -57,8 +57,8 @@ jobs:
 
           assert entitlements.get("get-task-allow") is True
           assert info.get("UIDeviceFamily") == [1, 2]
-          assert info.get("CFBundleShortVersionString") == "1.0.3"
-          assert info.get("CFBundleVersion") == "4"
+          assert info.get("CFBundleShortVersionString") == "1.0.4"
+          assert info.get("CFBundleVersion") == "5"
           assert info.get("UIApplicationSupportsIndirectInputEvents") is True
           assert "zh-Hant" in info.get("CFBundleLocalizations", [])
           assert info.get("UILaunchStoryboardName") == "LaunchScreen"

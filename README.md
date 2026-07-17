@@ -5,7 +5,7 @@ Firefox's Gecko engine running inside a `WKWebView`, packaged as an unsigned iPa
 ## Requirements
 
 - iPadOS 27 or newer. This Gecko build requires WebAssembly JavaScript Promise Integration (JSPI), first provided by WebKit in Safari 27.
-- Network access is only required for websites opened inside Firefox. Version 1.0.3 bundles the full Gecko runtime and browser assets inside the IPA, so launching Firefox never downloads them again.
+- Network access is only required for websites opened inside Firefox. Version 1.0.4 bundles the full Gecko runtime and browser assets inside the IPA, so launching Firefox never downloads them again.
 - Browser traffic uses the Wisp transport at `wss://wisp.mercurywork.shop/`; the expired Puter Labs endpoint is replaced before Gecko starts.
 - For the experimental Gecko JS → WASM JIT: a sideloaded build that retains `get-task-allow`, plus StikDebug or another compatible JIT enabler.
 
@@ -27,7 +27,8 @@ The replacement IPA is roughly 80 MB because it now includes Gecko, the Firefox 
 - Gecko is configured with `intl.accept_languages=zh-TW,zh,en-US,en` and Noto Sans CJK TC as the zh-TW serif/sans-serif fallback.
 - Hardware shortcuts include `⌘L`, `⌘T`, `⌘R`, `⌘F`, `⌥←`, and `⌥→`.
 - Tap **中文輸入** or the native keyboard button to use the iPad Traditional Chinese IME. Composition text is forwarded to Gecko after candidate selection.
-- The input bridge keeps the software keyboard focused between characters, and touch-drag gestures on the Firefox canvas are translated into Gecko pixel-wheel scrolling.
+- The input bridge keeps the software keyboard focused between characters, forwards Backspace even when WebKit omits `beforeinput`, and adds inertial touch scrolling.
+- The native **網址列** toolbar action presents an iPadOS search/address field. Extension action popups such as uBlock Origin open as normal tabs because floating WebExtension panels are unstable in the windowless Gecko build.
 
 ## Audio
 

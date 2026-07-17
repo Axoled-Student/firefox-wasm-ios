@@ -5,6 +5,9 @@
   var input;
   var composing = false;
   var touchScroll = null;
+  var momentumFrame = 0;
+  var ignoreNextDeleteBeforeInput = false;
+  var deleteGuardTimer = 0;
 
   function notifyNative(type, payload) {
     try {
@@ -97,13 +100,41 @@
         // newline so it stays ready for the next search or address.
         event.preventDefault();
         input.value = '';
-      } else if (event.inputType.indexOf('deleteContentBackward') === 0) {
+      } else if (
+        event.inputType.indexOf('deleteContentBackward') === 0 ||
+        event.inputType.indexOf('deleteContentForward') === 0
+      ) {
         event.preventDefault();
-        dispatchKey('Backspace', { code: 'Backspace', keyCode: 8 });
+        if (ignoreNextDeleteBeforeInput) {
+          ignoreNextDeleteBeforeInput = false;
+          window.clearTimeout(deleteGuardTimer);
+          return;
+        }
+        var forward = event.inputType.indexOf('Forward') !== -1;
+        dispatchKey(forward ? 'Delete' : 'Backspace', {
+          code: forward ? 'Delete' : 'Backspace',
+          keyCode: forward ? 46 : 8
+        });
       }
     });
     input.addEventListener('keydown', function (event) {
       if (event.key === 'Escape') { event.preventDefault(); hideKeyboard(); return; }
+      if (event.key === 'Backspace' || event.key === 'Delete') {
+        // iPadOS may omit beforeinput when this forwarding textarea is empty.
+        // Send the delete from keydown, then suppress the matching beforeinput
+        // if WebKit does provide one.
+        event.preventDefault();
+        dispatchKey(event.key, {
+          code: event.code || event.key,
+          keyCode: event.key === 'Delete' ? 46 : 8
+        });
+        ignoreNextDeleteBeforeInput = true;
+        window.clearTimeout(deleteGuardTimer);
+        deleteGuardTimer = window.setTimeout(function () {
+          ignoreNextDeleteBeforeInput = false;
+        }, 120);
+        return;
+      }
       if (event.key === 'Enter' || event.key === 'Tab' || event.key.indexOf('Arrow') === 0) {
         event.preventDefault();
         dispatchKey(event.key, {
@@ -124,7 +155,49 @@
     if (!canvas) return;
     canvas.style.touchAction = 'none';
 
+    function dispatchWheel(x, y, deltaX, deltaY) {
+      canvas.dispatchEvent(new WheelEvent('wheel', {
+        deltaX: deltaX,
+        deltaY: deltaY,
+        deltaMode: 0,
+        clientX: x,
+        clientY: y,
+        bubbles: true,
+        cancelable: true
+      }));
+    }
+
+    function stopMomentum() {
+      if (momentumFrame) window.cancelAnimationFrame(momentumFrame);
+      momentumFrame = 0;
+    }
+
+    function startMomentum(state) {
+      var velocityX = state.velocityX;
+      var velocityY = state.velocityY;
+      var lastTime = performance.now();
+      function step(now) {
+        var elapsed = Math.min(32, now - lastTime);
+        if (elapsed < 28) {
+          momentumFrame = window.requestAnimationFrame(step);
+          return;
+        }
+        lastTime = now;
+        var decay = Math.pow(0.88, elapsed / 16.67);
+        velocityX *= decay;
+        velocityY *= decay;
+        if (Math.hypot(velocityX, velocityY) < 0.05) {
+          momentumFrame = 0;
+          return;
+        }
+        dispatchWheel(state.x, state.y, velocityX * elapsed, velocityY * elapsed);
+        momentumFrame = window.requestAnimationFrame(step);
+      }
+      momentumFrame = window.requestAnimationFrame(step);
+    }
+
     canvas.addEventListener('touchstart', function (event) {
+      stopMomentum();
       if (event.touches.length !== 1) {
         touchScroll = null;
         return;
@@ -136,6 +209,9 @@
         y: touch.clientY,
         startX: touch.clientX,
         startY: touch.clientY,
+        time: performance.now(),
+        velocityX: 0,
+        velocityY: 0,
         moved: false
       };
     }, { passive: true });
@@ -149,6 +225,8 @@
 
       var deltaX = touchScroll.x - touch.clientX;
       var deltaY = touchScroll.y - touch.clientY;
+      var now = performance.now();
+      var elapsed = Math.max(8, Math.min(40, now - touchScroll.time));
       var distanceX = touch.clientX - touchScroll.startX;
       var distanceY = touch.clientY - touchScroll.startY;
       if (!touchScroll.moved && Math.hypot(distanceX, distanceY) < 5) return;
@@ -156,20 +234,23 @@
       touchScroll.moved = true;
       touchScroll.x = touch.clientX;
       touchScroll.y = touch.clientY;
+      touchScroll.time = now;
+      touchScroll.velocityX = Math.max(-2.5, Math.min(2.5,
+        touchScroll.velocityX * 0.65 + (deltaX / elapsed) * 0.35
+      ));
+      touchScroll.velocityY = Math.max(-2.5, Math.min(2.5,
+        touchScroll.velocityY * 0.65 + (deltaY / elapsed) * 0.35
+      ));
       event.preventDefault();
-      canvas.dispatchEvent(new WheelEvent('wheel', {
-        deltaX: deltaX,
-        deltaY: deltaY,
-        deltaMode: 0,
-        clientX: touch.clientX,
-        clientY: touch.clientY,
-        bubbles: true,
-        cancelable: true
-      }));
+      dispatchWheel(touch.clientX, touch.clientY, deltaX, deltaY);
     }, { passive: false });
 
     function finishTouch(event) {
-      if (touchScroll && touchScroll.moved) event.preventDefault();
+      var finished = touchScroll;
+      if (finished && finished.moved) {
+        event.preventDefault();
+        startMomentum(finished);
+      }
       touchScroll = null;
     }
     canvas.addEventListener('touchend', finishTouch, { passive: false });
@@ -236,6 +317,28 @@
         "Services.prefs.setCharPref('font.name-list.sans-serif.zh-TW','Noto Sans CJK TC, Noto Sans TC, Liberation Sans');" +
         "Services.prefs.setCharPref('font.name.serif.zh-TW','Noto Sans CJK TC');" +
         "Services.prefs.setCharPref('font.name-list.serif.zh-TW','Noto Sans CJK TC, Noto Sans TC, Liberation Serif');" +
+        "if (!window.__firefoxIOSPopupWorkaroundV2) {" +
+          "window.__firefoxIOSPopupWorkaroundV2 = true;" +
+          "let lastExtensionOpen = 0;" +
+          "const redirectExtensionPopup = event => {" +
+            "const target = event.target?.closest?.('toolbarbutton.webextension-browser-action');" +
+            "if (!target) return;" +
+            "const extensionId = target.getAttribute('data-extensionid');" +
+            "const policy = extensionId && WebExtensionPolicy.getByID(extensionId);" +
+            "const popup = policy?.extension?.manifest?.browser_action?.default_popup;" +
+            "if (!popup) return;" +
+            "event.preventDefault();" +
+            "event.stopPropagation();" +
+            "event.stopImmediatePropagation();" +
+            "const now = Date.now();" +
+            "if (now - lastExtensionOpen < 2000) return;" +
+            "lastExtensionOpen = now;" +
+            "setTimeout(() => openTrustedLinkIn(popup, 'tab', { inBackground: false }), 0);" +
+          "};" +
+          "window.addEventListener('mousedown', redirectExtensionPopup, true);" +
+          "window.addEventListener('click', redirectExtensionPopup, true);" +
+          "window.addEventListener('command', redirectExtensionPopup, true);" +
+        "}" +
         "return 'zh-TW-ready';" +
       "})()").then(function (result) {
         notifyNative('gecko', result);
@@ -252,7 +355,11 @@
     hideKeyboard: hideKeyboard,
     focusCanvas: function () { if (canvas) canvas.focus(); },
     openURL: function (url) {
-      if (typeof window.geckoLoad === 'function') return window.geckoLoad(url);
+      if (typeof window.geckoEvalChrome === 'function') {
+        return window.geckoEvalChrome(
+          "openTrustedLinkIn(" + JSON.stringify(String(url)) + ", 'current'); 'ok'"
+        );
+      }
       return false;
     }
   };

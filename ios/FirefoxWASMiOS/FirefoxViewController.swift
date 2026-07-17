@@ -146,7 +146,30 @@ final class FirefoxViewController: UIViewController {
 
     @objc private func goBack() { sendKey("ArrowLeft", code: "ArrowLeft", keyCode: 37, alt: true) }
     @objc private func goForward() { sendKey("ArrowRight", code: "ArrowRight", keyCode: 39, alt: true) }
-    @objc private func focusLocation() { sendKey("l", code: "KeyL", keyCode: 76, command: true) }
+    @objc private func focusLocation() {
+        guard presentedViewController == nil else { return }
+        let alert = UIAlertController(title: "搜尋或輸入網址", message: nil, preferredStyle: .alert)
+        alert.addTextField { field in
+            field.placeholder = "網址或 DuckDuckGo 搜尋"
+            field.keyboardType = .webSearch
+            field.returnKeyType = .go
+            field.autocapitalizationType = .none
+            field.autocorrectionType = .no
+            field.clearButtonMode = .whileEditing
+        }
+        alert.addAction(UIAlertAction(title: "取消", style: .cancel))
+        let go = UIAlertAction(title: "前往", style: .default) { [weak self, weak alert] _ in
+            guard
+                let self,
+                let text = alert?.textFields?.first?.text,
+                let destination = self.destinationURL(for: text)
+            else { return }
+            self.openInFirefox(destination)
+        }
+        alert.addAction(go)
+        alert.preferredAction = go
+        present(alert, animated: true)
+    }
     @objc private func newTab() { sendKey("t", code: "KeyT", keyCode: 84, command: true) }
     @objc private func findInPage() { sendKey("f", code: "KeyF", keyCode: 70, command: true) }
     @objc private func escape() { sendKey("Escape", code: "Escape", keyCode: 27) }
@@ -157,6 +180,28 @@ final class FirefoxViewController: UIViewController {
 
     @objc private func showKeyboard() {
         webView.evaluateJavaScript("window.FirefoxIOS?.showKeyboard();")
+    }
+
+    private func destinationURL(for input: String) -> String? {
+        let value = input.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !value.isEmpty else { return nil }
+        if let url = URL(string: value), let scheme = url.scheme?.lowercased(), ["http", "https"].contains(scheme) {
+            return url.absoluteString
+        }
+        if !value.contains(" "), value.contains("."), let url = URL(string: "https://\(value)") {
+            return url.absoluteString
+        }
+        var components = URLComponents(string: "https://duckduckgo.com/")
+        components?.queryItems = [URLQueryItem(name: "q", value: value)]
+        return components?.url?.absoluteString
+    }
+
+    private func openInFirefox(_ url: String) {
+        guard
+            let data = try? JSONSerialization.data(withJSONObject: url, options: .fragmentsAllowed),
+            let json = String(data: data, encoding: .utf8)
+        else { return }
+        webView.evaluateJavaScript("window.FirefoxIOS?.openURL(\(json));")
     }
 
     deinit {
