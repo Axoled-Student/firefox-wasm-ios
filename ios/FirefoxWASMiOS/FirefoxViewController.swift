@@ -80,7 +80,7 @@ final class FirefoxViewController: UIViewController {
             command("f", .command, "尋找", #selector(findInPage)),
             command(UIKeyCommand.inputLeftArrow, .alternate, "上一頁", #selector(goBack)),
             command(UIKeyCommand.inputRightArrow, .alternate, "下一頁", #selector(goForward)),
-            UIKeyCommand(input: UIKeyCommand.inputEscape, modifierFlags: [], action: #selector(escape), discoverabilityTitle: "關閉")
+            command(UIKeyCommand.inputEscape, [], "關閉", #selector(escape))
         ]
     }
 
@@ -93,7 +93,7 @@ final class FirefoxViewController: UIViewController {
     }
 
     private func command(_ input: String, _ modifiers: UIKeyModifierFlags, _ title: String, _ action: Selector) -> UIKeyCommand {
-        UIKeyCommand(input: input, modifierFlags: modifiers, action: action, discoverabilityTitle: title)
+        UIKeyCommand(title: title, action: action, input: input, modifierFlags: modifiers)
     }
 
     private func sendKey(

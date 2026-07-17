@@ -52,7 +52,8 @@ jobs:
             cd build/ipa
             /usr/bin/zip -qry ../FirefoxWASM-iPadOS27-unsigned.ipa Payload
           )
-          /usr/bin/codesign -d --entitlements :- "$APP_PATH" > build/entitlements.plist
+          /usr/bin/codesign -d --entitlements - "$APP_PATH" > build/entitlements.plist
+          /usr/bin/plutil -extract get-task-allow raw -o - build/entitlements.plist | grep -qx true
           shasum -a 256 build/FirefoxWASM-iPadOS27-unsigned.ipa > build/FirefoxWASM-iPadOS27-unsigned.ipa.sha256
 
       - name: Upload IPA
