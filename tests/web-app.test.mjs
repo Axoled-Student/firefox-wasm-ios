@@ -17,10 +17,22 @@ test("ships the zh-TW iPad browser shell", async () => {
   assert.match(html, /ios-bridge\.js/);
   assert.match(html, /wss:\/\/wisp\.mercurywork\.shop\//);
   assert.match(html, /sensible-ship-8305\.puter\.work/);
+  assert.match(html, /options\.jit = false/);
+  assert.match(html, /ipadosStableRevision/);
   assert.match(bridge, /compositionend/);
+  assert.match(bridge, /insertLineBreak/);
+  assert.match(bridge, /touchmove/);
+  assert.match(bridge, /new WheelEvent\('wheel'/);
+  assert.match(bridge, /passive: false/);
+  const dispatchKey = bridge.slice(
+    bridge.indexOf('function dispatchKey'),
+    bridge.indexOf('function insertText'),
+  );
+  assert.doesNotMatch(dispatchKey, /canvas\.focus\(\)/);
   assert.match(bridge, /Noto Sans CJK TC/);
   assert.match(bridge, /WebAssembly\.Suspending/);
   assert.match(style, /PingFang TC/);
+  assert.match(style, /touch-action: none/);
 });
 
 test("ships matching Gecko and CJK asset payloads", async () => {
@@ -48,7 +60,7 @@ test("cross-origin isolation and persistent runtime caching are included", async
   assert.match(worker, /Cross-Origin-Embedder-Policy/);
   assert.match(worker, /Cross-Origin-Opener-Policy/);
   assert.match(worker, /clients\.claim/);
-  assert.match(worker, /firefox-wasm-runtime-v2/);
+  assert.match(worker, /firefox-wasm-runtime-v3/);
   assert.match(worker, /caches\.delete/);
   assert.match(worker, /gecko\.wasm\.zst/);
   assert.match(worker, /chrome-assets\.tar\.zst/);

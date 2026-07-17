@@ -19,7 +19,13 @@
         const key = "chrome-demo-opts";
         const options = JSON.parse(localStorage.getItem(key) || "{}");
         if (typeof options.gpu !== "boolean") options.gpu = true;
-        if (typeof options.jit !== "boolean") options.jit = true;
+        // Migrate existing installs away from the experimental Gecko JIT. It
+        // currently crashes in RegExpExec on normal search pages. This toggle
+        // is separate from StikDebug's process-level JIT permission.
+        if (options.ipadosStableRevision !== 1) {
+          options.jit = false;
+          options.ipadosStableRevision = 1;
+        }
         localStorage.setItem(key, JSON.stringify(options));
       } catch (_) {}
 
@@ -162,8 +168,8 @@
                   <label class="option-card">
                     <input type="checkbox" id="opt-jit" />
                     <span class="option-copy">
-                      <strong>啟用 JIT</strong>
-                      <span>實驗性 JS → WASM JIT；需先用 StikDebug 啟用。</span>
+                      <strong>實驗性 Gecko JIT（不建議）</strong>
+                      <span>目前可能使搜尋頁崩潰。StikDebug 的程序 JIT 不受此選項影響。</span>
                     </span>
                   </label>
                   <label class="wisp-field">

@@ -4,6 +4,7 @@
   var canvas;
   var input;
   var composing = false;
+  var touchScroll = null;
 
   function notifyNative(type, payload) {
     try {
@@ -28,7 +29,9 @@
       bubbles: true,
       cancelable: true
     };
-    canvas.focus();
+    // Dispatch directly to the canvas without focusing it. Focusing the canvas
+    // blurs the hidden textarea on iPadOS, which dismisses the software
+    // keyboard after every character.
     canvas.dispatchEvent(new KeyboardEvent('keydown', init));
     canvas.dispatchEvent(new KeyboardEvent('keyup', init));
   }
@@ -89,6 +92,11 @@
         event.preventDefault();
         insertText(event.data);
         input.value = '';
+      } else if (event.inputType === 'insertLineBreak') {
+        // keydown already forwards Enter. Prevent the textarea from keeping a
+        // newline so it stays ready for the next search or address.
+        event.preventDefault();
+        input.value = '';
       } else if (event.inputType.indexOf('deleteContentBackward') === 0) {
         event.preventDefault();
         dispatchKey('Backspace', { code: 'Backspace', keyCode: 8 });
@@ -109,6 +117,63 @@
       }
     });
     canvas.addEventListener('dblclick', showKeyboard);
+    installTouchScrolling();
+  }
+
+  function installTouchScrolling() {
+    if (!canvas) return;
+    canvas.style.touchAction = 'none';
+
+    canvas.addEventListener('touchstart', function (event) {
+      if (event.touches.length !== 1) {
+        touchScroll = null;
+        return;
+      }
+      var touch = event.touches[0];
+      touchScroll = {
+        identifier: touch.identifier,
+        x: touch.clientX,
+        y: touch.clientY,
+        startX: touch.clientX,
+        startY: touch.clientY,
+        moved: false
+      };
+    }, { passive: true });
+
+    canvas.addEventListener('touchmove', function (event) {
+      if (!touchScroll) return;
+      var touch = Array.from(event.touches).find(function (item) {
+        return item.identifier === touchScroll.identifier;
+      });
+      if (!touch) return;
+
+      var deltaX = touchScroll.x - touch.clientX;
+      var deltaY = touchScroll.y - touch.clientY;
+      var distanceX = touch.clientX - touchScroll.startX;
+      var distanceY = touch.clientY - touchScroll.startY;
+      if (!touchScroll.moved && Math.hypot(distanceX, distanceY) < 5) return;
+
+      touchScroll.moved = true;
+      touchScroll.x = touch.clientX;
+      touchScroll.y = touch.clientY;
+      event.preventDefault();
+      canvas.dispatchEvent(new WheelEvent('wheel', {
+        deltaX: deltaX,
+        deltaY: deltaY,
+        deltaMode: 0,
+        clientX: touch.clientX,
+        clientY: touch.clientY,
+        bubbles: true,
+        cancelable: true
+      }));
+    }, { passive: false });
+
+    function finishTouch(event) {
+      if (touchScroll && touchScroll.moved) event.preventDefault();
+      touchScroll = null;
+    }
+    canvas.addEventListener('touchend', finishTouch, { passive: false });
+    canvas.addEventListener('touchcancel', finishTouch, { passive: false });
   }
 
   function translateRuntimeStatus() {
@@ -142,7 +207,7 @@
     note.id = 'ios-compatibility';
     var jspi = typeof WebAssembly.Suspending === 'function' && typeof WebAssembly.promising === 'function';
     note.textContent = jspi
-      ? '✓ 已偵測到 WebAssembly JSPI（iPadOS 27）。若使用側載版，請先在 StikDebug 啟用 JIT。'
+      ? '✓ 已偵測到 WebAssembly JSPI（iPadOS 27）。StikDebug 的程序 JIT 可保持啟用；為避免搜尋崩潰，請將實驗性 Gecko JIT 保持關閉。'
       : '需要 iPadOS 27 或更新版本的 WebAssembly JSPI。此裝置目前未提供 JSPI。';
     panel.appendChild(note);
     var AudioContextClass = window.AudioContext || window.webkitAudioContext;

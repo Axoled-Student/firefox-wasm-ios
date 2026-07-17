@@ -5,7 +5,7 @@ Firefox's Gecko engine running inside a `WKWebView`, packaged as an unsigned iPa
 ## Requirements
 
 - iPadOS 27 or newer. This Gecko build requires WebAssembly JavaScript Promise Integration (JSPI), first provided by WebKit in Safari 27.
-- Network access is only required for websites opened inside Firefox. Version 1.0.2 bundles the full Gecko runtime and browser assets inside the IPA, so launching Firefox never downloads them again.
+- Network access is only required for websites opened inside Firefox. Version 1.0.3 bundles the full Gecko runtime and browser assets inside the IPA, so launching Firefox never downloads them again.
 - Browser traffic uses the Wisp transport at `wss://wisp.mercurywork.shop/`; the expired Puter Labs endpoint is replaced before Gecko starts.
 - For the experimental Gecko JS → WASM JIT: a sideloaded build that retains `get-task-allow`, plus StikDebug or another compatible JIT enabler.
 
@@ -17,7 +17,7 @@ Firefox's Gecko engine running inside a `WKWebView`, packaged as an unsigned iPa
 4. Confirm the development signer applied `get-task-allow` (the artifact includes `requested-entitlements.plist` as a reference).
 5. In StikDebug, select **Firefox WASM** and enable JIT, then return to Firefox WASM.
 
-The JIT checkbox in the web launch screen is enabled by default. StikDebug controls iPadOS process JIT permission; the checkbox controls Gecko's experimental internal JS → WASM JIT.
+StikDebug controls iPadOS process JIT permission and can remain enabled. The launch screen's separate experimental Gecko JS → WASM JIT is disabled by default because its current RegExp path crashes on ordinary search pages.
 
 The replacement IPA is roughly 80 MB because it now includes Gecko, the Firefox chrome archive, and the Traditional Chinese font. The native wrapper serves those files from a private loopback address with the COOP/COEP headers required by WebAssembly threads. The hosted web version additionally stores the large archives in persistent Cache Storage after the first download.
 
@@ -27,6 +27,7 @@ The replacement IPA is roughly 80 MB because it now includes Gecko, the Firefox 
 - Gecko is configured with `intl.accept_languages=zh-TW,zh,en-US,en` and Noto Sans CJK TC as the zh-TW serif/sans-serif fallback.
 - Hardware shortcuts include `⌘L`, `⌘T`, `⌘R`, `⌘F`, `⌥←`, and `⌥→`.
 - Tap **中文輸入** or the native keyboard button to use the iPad Traditional Chinese IME. Composition text is forwarded to Gecko after candidate selection.
+- The input bridge keeps the software keyboard focused between characters, and touch-drag gestures on the Firefox canvas are translated into Gecko pixel-wheel scrolling.
 
 ## Audio
 

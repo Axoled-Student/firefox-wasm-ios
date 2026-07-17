@@ -1,4 +1,4 @@
-var RUNTIME_CACHE = 'firefox-wasm-runtime-v2';
+var RUNTIME_CACHE = 'firefox-wasm-runtime-v3';
 var RUNTIME_ASSETS = [
   '/gecko.wasm.zst',
   '/chrome-assets.tar.zst',
